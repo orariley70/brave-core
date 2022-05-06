@@ -20,8 +20,10 @@ namespace {
 
 constexpr auto kSearchResultAdsConfirmationVettedHosts =
     base::MakeFixedFlatSet<base::StringPiece>(
-        {"search.anonymous.brave.com", "search.anonymous.bravesoftware.com"});
+        {"search.anonymous.ads.brave.com",
+         "search.anonymous.ads.bravesoftware.com"});
 constexpr char kSearchResultAdsViewedPath[] = "/v3/confirmation";
+constexpr char kSearchResultAdsClickedPath[] = "/v3/click";
 constexpr char kCreativeInstanceIdParameterName[] = "creativeInstanceId";
 constexpr char kTypeParameterName[] = "type";
 constexpr char kTypeViewParameterValue[] = "view";
@@ -93,6 +95,31 @@ std::string GetViewedSearchResultAdCreativeInstanceId(
   }
 
   return *creative_instance_id;
+}
+
+bool IsSearchResultAdClickedConfirmationUrl(const GURL& url) {
+  return IsSearchResultAdConfirmationUrl(url, kSearchResultAdsClickedPath);
+}
+
+std::string GetClickedSearchResultAdCreativeInstanceId(
+    const network::ResourceRequest& request) {
+  const GURL& url = request.url;
+  if (!IsSearchResultAdClickedConfirmationUrl(url) || !url.has_query() ||
+      request.method != net::HttpRequestHeaders::kGetMethod) {
+    return {};
+  }
+
+  base::StringPiece query_str = url.query_piece();
+  url::Component query(0, static_cast<int>(query_str.length())), key, value;
+  while (url::ExtractQueryKeyValue(query_str.data(), &query, &key, &value)) {
+    base::StringPiece key_str = query_str.substr(key.begin, key.len);
+    if (key_str == kCreativeInstanceIdParameterName) {
+      base::StringPiece value_str = query_str.substr(value.begin, value.len);
+      return static_cast<std::string>(value_str);
+    }
+  }
+
+  return {};
 }
 
 }  // namespace brave_ads

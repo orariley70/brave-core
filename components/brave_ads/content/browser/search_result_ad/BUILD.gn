@@ -5,8 +5,8 @@
 
 source_set("search_result_ad") {
   sources = [
-    "search_result_ad_parsing.cc",
-    "search_result_ad_parsing.h",
+    "search_result_ad_redirect_throttle.cc",
+    "search_result_ad_redirect_throttle.h",
     "search_result_ad_service.cc",
     "search_result_ad_service.h",
   ]
@@ -15,13 +15,16 @@ source_set("search_result_ad") {
     "//base",
     "//brave/components/brave_ads/browser",
     "//brave/components/brave_ads/common",
+    "//brave/components/brave_ads/core/browser/search_result_ad",
     "//brave/components/brave_search/common",
     "//components/schema_org/common:mojom",
     "//components/sessions",
     "//content/public/browser",
     "//mojo/public/cpp/bindings",
+    "//services/network/public/cpp",
     "//services/service_manager/public/cpp",
     "//third_party/abseil-cpp:absl",
+    "//third_party/blink/public/common",
   ]
 
   public_deps = [

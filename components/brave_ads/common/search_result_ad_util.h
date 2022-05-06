@@ -21,6 +21,11 @@ bool IsSearchResultAdViewedConfirmationUrl(const GURL& url);
 std::string GetViewedSearchResultAdCreativeInstanceId(
     const network::ResourceRequest& request);
 
+bool IsSearchResultAdClickedConfirmationUrl(const GURL& url);
+
+std::string GetClickedSearchResultAdCreativeInstanceId(
+    const network::ResourceRequest& request);
+
 }  // namespace brave_ads
 
 #endif  // BRAVE_COMPONENTS_BRAVE_ADS_COMMON_SEARCH_RESULT_AD_UTIL_H_

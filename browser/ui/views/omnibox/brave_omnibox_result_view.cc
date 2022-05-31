@@ -31,7 +31,7 @@ BraveOmniboxResultView::~BraveOmniboxResultView() = default;
 
 void BraveOmniboxResultView::ResetChildrenVisibility() {
   // Reset children visibility. Their visibility could be configured later
-  // based on |match_| and current input.
+  // based on |match_| and the current input.
   suggestion_container_->SetVisible(true);
   button_row_->SetVisible(true);
   if (brave_search_promotion_view_) {

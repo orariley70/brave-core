@@ -10,44 +10,71 @@
 #include "brave/components/brave_search_conversion/features.h"
 #include "brave/components/brave_search_conversion/types.h"
 #include "brave/components/brave_search_conversion/utils.h"
+#include "brave/components/l10n/browser/locale_helper.h"
 #include "brave/components/omnibox/browser/promotion_provider.h"
 #include "brave/components/omnibox/browser/promotion_utils.h"
 #include "brave/components/search_engines/brave_prepopulated_engines.h"
 #include "components/omnibox/browser/autocomplete_input.h"
 #include "components/omnibox/browser/autocomplete_result.h"
+#include "components/omnibox/browser/mock_autocomplete_provider_client.h"
 #include "components/omnibox/browser/test_scheme_classifier.h"
-#include "components/prefs/testing_pref_service.h"
 #include "components/search_engines/template_url_data_util.h"
 #include "components/search_engines/template_url_service.h"
+#include "testing/gmock/include/gmock/gmock.h"
 #include "testing/gtest/include/gtest/gtest.h"
 
 using brave_search_conversion::ConversionType;
 using brave_search_conversion::GetPromoURL;
 using brave_search_conversion::RegisterPrefs;
+using ::testing::NiceMock;
+using ::testing::Return;
+
+namespace {
+
+class LocaleHelperMock : public brave_l10n::LocaleHelper {
+ public:
+  MOCK_CONST_METHOD0(GetLocale, std::string());
+};
+
+}  // namespace
 
 class OmniboxPromotionTest : public testing::Test {
  public:
-  OmniboxPromotionTest() : template_url_service_(nullptr, 0) {}
+  OmniboxPromotionTest() = default;
   ~OmniboxPromotionTest() override = default;
 
   void SetUp() override {
-    brave_search_conversion::RegisterPrefs(pref_service_.registry());
-    // Set non brave search provider to get promotion match.
-    auto provider_data = TemplateURLDataFromPrepopulatedEngine(
-        TemplateURLPrepopulateData::brave_bing);
-    auto brave_search_template_url =
-        std::make_unique<TemplateURL>(*provider_data);
-
-    template_url_service_.Load();
-    template_url_service_.SetUserSelectedDefaultSearchProvider(
-        brave_search_template_url.get());
-
-    provider_ = new PromotionProvider(&pref_service_, &template_url_service_);
+    SetMockLocale("en-US");
+    SetMockClient();
+    provider_ = new PromotionProvider(client_mock_.get());
   }
 
-  TestingPrefServiceSimple pref_service_;
-  TemplateURLService template_url_service_;
+  void SetMockLocale(const std::string& locale) {
+    // Set promotion supported locale.
+    locale_helper_mock_ = std::make_unique<NiceMock<LocaleHelperMock>>();
+    brave_l10n::LocaleHelper::GetInstance()->set_for_testing(
+        locale_helper_mock_.get());
+    ON_CALL(*locale_helper_mock_, GetLocale()).WillByDefault(Return(locale));
+  }
+
+  void SetMockClient() {
+    // Set non brave search provider to get promotion match.
+    auto bing_data = TemplateURLDataFromPrepopulatedEngine(
+        TemplateURLPrepopulateData::brave_bing);
+    auto bing_template_url = std::make_unique<TemplateURL>(*bing_data);
+    auto template_url_service =
+        std::make_unique<TemplateURLService>(nullptr, 0);
+    template_url_service->Load();
+    template_url_service->SetUserSelectedDefaultSearchProvider(
+        bing_template_url.get());
+
+    client_mock_ = std::make_unique<MockAutocompleteProviderClient>();
+    client_mock_->set_template_url_service(std::move(template_url_service));
+  }
+
   TestSchemeClassifier classifier_;
+  std::unique_ptr<MockAutocompleteProviderClient> client_mock_;
+  std::unique_ptr<LocaleHelperMock> locale_helper_mock_;
   scoped_refptr<PromotionProvider> provider_;
 };
 

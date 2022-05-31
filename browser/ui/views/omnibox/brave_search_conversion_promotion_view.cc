@@ -86,6 +86,8 @@ class HorizontalGradientBackground : public views::Background {
               COLOR_SEARCH_CONVERSION_BANNER_TYPE_BACKGROUND_GRADIENT_TO);
     }
 
+    // Gradient background from design.
+    //  - linear-gradient(90deg, from_color, 19.6%, to_color, 100%).
     cc::PaintFlags flags;
     SkPoint points[2] = {SkPoint::Make(0, 0), SkPoint::Make(view->width(), 0)};
     SkColor colors[2] = {from_color, to_color};
@@ -432,7 +434,7 @@ void BraveSearchConversionPromotionView::ConfigureForButtonType() {
       std::make_unique<TryButton>(views::Button::PressedCallback(
           base::BindRepeating(&BraveSearchConversionPromotionView::OpenMatch,
                               base::Unretained(this)))));
-  try_button->SetProperty(views::kMarginsKey, gfx::Insets::TLBR(17, 0, 17, 0));
+  try_button->SetProperty(views::kMarginsKey, gfx::Insets::VH(17, 0));
   try_button->SetProminent(true);
   try_button->SetText(brave_l10n::GetLocalizedResourceUTF16String(
       IDS_BRAVE_SEARCH_CONVERSION_TRY_BUTTON_LABEL));

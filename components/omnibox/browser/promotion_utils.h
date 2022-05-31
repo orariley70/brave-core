@@ -16,13 +16,13 @@ namespace brave_search_conversion {
 enum class ConversionType;
 }  // namespace brave_search_conversion
 
-// Exported for testing.
+// Exposed for testing.
 void SortBraveSearchPromotionMatch(
     AutocompleteResult* result,
     const AutocompleteInput& input,
     brave_search_conversion::ConversionType type);
 
-// True when |match| is brave search conversion promotion match for |input|.
+// True when |match| is the brave search conversion promotion match for |input|.
 bool IsBraveSearchPromotionMatch(const AutocompleteMatch& match,
                                  const std::u16string& input);
 

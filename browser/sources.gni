@@ -92,6 +92,8 @@ brave_chrome_browser_sources = [
   "//brave/browser/metrics/brave_metrics_service_accessor.h",
   "//brave/browser/metrics/metrics_reporting_util.cc",
   "//brave/browser/metrics/metrics_reporting_util.h",
+  "//brave/browser/profile_resetter/brave_profile_resetter.cc",
+  "//brave/browser/profile_resetter/brave_profile_resetter.h",
   "//brave/browser/update_util.cc",
   "//brave/browser/update_util.h",
 ]

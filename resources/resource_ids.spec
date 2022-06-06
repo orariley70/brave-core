@@ -59,7 +59,7 @@
     "includes": [49400]
   },
   # This file is generated during the build.
-  "<(SHARED_INTERMEDIATE_DIR)/brave/web-ui-brave_rewards_panel/brave_rewards_panel.grd": {
+  "<(SHARED_INTERMEDIATE_DIR)/brave/web-ui-brave_rewards_extension_panel/brave_rewards_extension_panel.grd": {
     "META": {"sizes": {"includes": [200]}},
     "includes": [49500],
   },
@@ -181,5 +181,9 @@
   "<(SHARED_INTERMEDIATE_DIR)/brave/browser/resources/federated_internals/federated_internals_resources.grd": {
     "META": {"sizes": {"includes": [250]}},
     "includes": [58750]
+  },
+  "<(SHARED_INTERMEDIATE_DIR)/brave/web-ui-brave_rewards_panel/brave_rewards_panel.grd": {
+    "META": {"sizes": {"includes": [200]}},
+    "includes": [58950],
   },
 }

@@ -30,14 +30,8 @@ const base::Feature kBraveWalletSolanaProviderFeature{
 const base::Feature kBraveWalletEditKnownNetworksFeature{
     "BraveWalletEditKnownNetworks", base::FEATURE_DISABLED_BY_DEFAULT};
 
-const base::Feature kBraveWalletDappsSupportFeature {
-  "BraveWalletDappsSupport",
-#if BUILDFLAG(IS_ANDROID)
-      base::FEATURE_DISABLED_BY_DEFAULT
-#else
-      base::FEATURE_ENABLED_BY_DEFAULT
-#endif
-};
+const base::Feature kBraveWalletDappsSupportFeature{
+    "BraveWalletDappsSupport", base::FEATURE_ENABLED_BY_DEFAULT};
 
 }  // namespace features
 }  // namespace brave_wallet

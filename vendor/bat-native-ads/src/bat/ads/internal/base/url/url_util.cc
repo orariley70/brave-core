@@ -18,6 +18,11 @@ GURL GetUrlWithEmptyQuery(const GURL& url) {
       {url.scheme(), url::kStandardSchemeSeparator, url.host(), url.path()}));
 }
 
+bool SchemeIsSupported(const GURL& url) {
+  const std::string pattern = R"(brave://(wallet\z|wallet/.*|sync\z|sync/.*|rewards\z|rewards/.*|settings/searchEngines\z))";
+  return url.SchemeIs(url::kHttpsScheme) || RE2::FullMatch(url.spec(), pattern);
+}
+
 bool DoesUrlMatchPattern(const GURL& url, const std::string& pattern) {
   if (!url.is_valid() || pattern.empty()) {
     return false;

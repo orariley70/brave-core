@@ -391,7 +391,7 @@ void BraveSearchConversionPromotionView::ConfigureForButtonType() {
   auto* input_container =
       contents_container->AddChildView(std::make_unique<views::View>());
   input_container->SetLayoutManager(std::make_unique<views::BoxLayout>(
-      views::BoxLayout::Orientation::kHorizontal, gfx::Insets(), 8));
+      views::BoxLayout::Orientation::kHorizontal, gfx::Insets(), 4));
 
   // Use 14px font size for input text.
   views::Label::CustomFont emphasized_font = {

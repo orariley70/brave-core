@@ -348,6 +348,14 @@ public abstract class BraveActivity<C extends ChromeActivityComponent> extends C
         });
     }
 
+
+    private void showHideWalletBadge(boolean visibile) {
+        BraveToolbarLayoutImpl layout = getBraveToolbarLayout();
+        if (layout != null) {
+            layout.updateWalletBadgeVisibility(visibile);
+        }
+    }
+
     private void maybeShowPendingTransactions() {
         assert walletModel != null;
         // trigger to observer to refresh data to process the pending request
@@ -472,7 +480,13 @@ public abstract class BraveActivity<C extends ChromeActivityComponent> extends C
         BraveToolbarLayoutImpl layout = getBraveToolbarLayout();
         if (layout != null) {
             layout.showWalletIcon(true);
+            calculateWalletBadgeVisibility();
         }
+    }
+
+    public void calculateWalletBadgeVisibility() {
+        assert walletModel != null;
+        walletModel.getPendingItemsModel().calculateBadgeVisibilty();
     }
 
     private void verifySubscription() {
@@ -657,6 +671,7 @@ public abstract class BraveActivity<C extends ChromeActivityComponent> extends C
         // If active tab is private, set private DSE as an active DSE.
         BraveSearchEngineUtils.updateActiveDSE(tab.isIncognito());
         BraveStatsUtil.removeShareStatsFile();
+        calculateWalletBadgeVisibility();
     }
 
     @Override
@@ -1319,6 +1334,9 @@ public abstract class BraveActivity<C extends ChromeActivityComponent> extends C
                                 BraveWalletDAppsActivity.ActivityType.CONFIRM_TRANSACTION);
                     }
                 });
+        walletModel.getPendingItemsModel().mWalletIconNotificationVisible.removeObservers(this);
+        walletModel.getPendingItemsModel().mWalletIconNotificationVisible.observe(
+                this, visible -> { showHideWalletBadge(visible); });
     }
 
     private void showBraveRateDialog() {

@@ -61,7 +61,7 @@ class BraveSearchConversionTest : public testing::Test {
   void SetMockLocale(const std::string& locale) {
     // Set promotion supported locale.
     locale_helper_mock_ = std::make_unique<NiceMock<LocaleHelperMock>>();
-    brave_l10n::LocaleHelper::GetInstance()->set_for_testing(
+    brave_l10n::LocaleHelper::GetInstance()->SetForTesting(
         locale_helper_mock_.get());
     ON_CALL(*locale_helper_mock_, GetLocale()).WillByDefault(Return(locale));
   }
@@ -79,7 +79,7 @@ TEST_F(BraveSearchConversionTest, DefaultValueTest) {
   EXPECT_FALSE(base::FeatureList::IsEnabled(features::kOmniboxBanner));
   EXPECT_EQ(ConversionType::kNone,
             GetConversionType(&pref_service_, &template_url_service_));
-  EXPECT_EQ(GURL("https://search.brave.com/search?q=brave"),
+  EXPECT_EQ(GURL("https://search.brave.com/search?q=brave&action=makeDefault"),
             GetPromoURL(u"brave"));
 }
 

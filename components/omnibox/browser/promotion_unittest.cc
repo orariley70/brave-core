@@ -52,7 +52,7 @@ class OmniboxPromotionTest : public testing::Test {
   void SetMockLocale(const std::string& locale) {
     // Set promotion supported locale.
     locale_helper_mock_ = std::make_unique<NiceMock<LocaleHelperMock>>();
-    brave_l10n::LocaleHelper::GetInstance()->set_for_testing(
+    brave_l10n::LocaleHelper::GetInstance()->SetForTesting(
         locale_helper_mock_.get());
     ON_CALL(*locale_helper_mock_, GetLocale()).WillByDefault(Return(locale));
   }

@@ -95,7 +95,7 @@ class HorizontalGradientBackground : public views::Background {
     flags.setShader(cc::PaintShader::MakeLinearGradient(
         points, colors, positions, 2, SkTileMode::kClamp));
     flags.setStyle(cc::PaintFlags::kFill_Style);
-    gfx::RectF bounds(view->GetLocalBounds());
+    gfx::RectF bounds(view->GetContentsBounds());
     canvas->DrawRect(bounds, flags);
 
     auto& bundle = ui::ResourceBundle::GetSharedInstance();
@@ -103,7 +103,8 @@ class HorizontalGradientBackground : public views::Background {
         ui::NativeTheme::GetInstanceForNativeUi()->ShouldUseDarkColors()
             ? IDR_BRAVE_SEARCH_CONVERSION_BANNER_GRAPHIC_DARK
             : IDR_BRAVE_SEARCH_CONVERSION_BANNER_GRAPHIC);
-    canvas->DrawImageInt(*graphic, bounds.width() - graphic->width(), 0);
+    canvas->DrawImageInt(*graphic, bounds.right() - graphic->width(),
+                         bounds.y());
   }
 };
 
@@ -250,6 +251,7 @@ BraveSearchConversionPromotionView::BraveSearchConversionPromotionView(
           &BraveSearchConversionPromotionView::UpdateHoverState,
           base::Unretained(this))) {
   SetLayoutManager(std::make_unique<views::FlexLayout>());
+  mouse_enter_exit_handler_.ObserveMouseEnterExitOn(this);
 }
 
 BraveSearchConversionPromotionView::~BraveSearchConversionPromotionView() =
@@ -316,7 +318,7 @@ void BraveSearchConversionPromotionView::UpdateButtonTypeState() {
   if (auto* tp = GetThemeProvider()) {
     auto desc_color_id =
         BraveThemeProperties::COLOR_SEARCH_CONVERSION_BUTTON_TYPE_DESC_NORMAL;
-    if (IsMouseHovered()) {
+    if (IsMouseHovered() || selected_) {
       desc_color_id = BraveThemeProperties::
           COLOR_SEARCH_CONVERSION_BUTTON_TYPE_DESC_HOVERED;
     }
@@ -336,16 +338,31 @@ void BraveSearchConversionPromotionView::UpdateBannerTypeState() {
   banner_type_container_->SetVisible(true);
   SkColor desc_color = gfx::kPlaceholderColor;
   SkColor border_color = gfx::kPlaceholderColor;
+  const bool is_selected_or_hovered = selected_ || IsMouseHovered();
   if (auto* tp = GetThemeProvider()) {
     desc_color = tp->GetColor(
         BraveThemeProperties::COLOR_SEARCH_CONVERSION_BANNER_TYPE_DESC_TEXT);
-    border_color =
-        tp->GetColor(BraveThemeProperties::
-                         COLOR_SEARCH_CONVERSION_BANNER_TYPE_BACKGROUND_BORDER);
+    const int border_id =
+        is_selected_or_hovered
+            ? BraveThemeProperties::
+                  COLOR_SEARCH_CONVERSION_BANNER_TYPE_BACKGROUND_BORDER_HOVERED
+            : BraveThemeProperties::
+                  COLOR_SEARCH_CONVERSION_BANNER_TYPE_BACKGROUND_BORDER_HOVERED;
+    border_color = tp->GetColor(border_id);
   }
-  banner_type_container_->SetBorder(
-      views::CreateRoundedRectBorder(1, kBannerTypeRadius, border_color));
+  const int border_thickness = is_selected_or_hovered ? 2 : 1;
+  banner_type_container_->SetBorder(views::CreateRoundedRectBorder(
+      border_thickness, kBannerTypeRadius, border_color));
   banner_type_description_->SetEnabledColor(desc_color);
+
+  gfx::Insets container_margin =
+      gfx::Insets::TLBR(kBannerTypeMargin, kBannerTypeMargin,
+                        kBannerTypeMarginBottom, kBannerTypeMargin);
+  // By adjusting only container's margin when border thickness is changed, all
+  // children can use same layout value.
+  if (is_selected_or_hovered)
+    container_margin += gfx::Insets(-1);
+  banner_type_container_->SetProperty(views::kMarginsKey, container_margin);
 
   SetBackground(views::CreateSolidBackground(
       GetOmniboxColor(GetThemeProvider(), OmniboxPart::RESULTS_BACKGROUND)));
@@ -453,8 +470,6 @@ void BraveSearchConversionPromotionView::ConfigureForButtonType() {
   dismiss_button->SetProperty(views::kMarginsKey, gfx::Insets::VH(25, 8));
   dismiss_button->SetTooltipText(brave_l10n::GetLocalizedResourceUTF16String(
       IDS_BRAVE_SEARCH_CONVERSION_DISMISS_BUTTON_TOOLTIP));
-
-  mouse_enter_exit_handler_.ObserveMouseEnterExitOn(button_type_container_);
 }
 
 void BraveSearchConversionPromotionView::ConfigureForBannerType() {
@@ -560,7 +575,7 @@ BraveSearchConversionPromotionView::GetButtonTypeBackground() {
   if (auto* tp = GetThemeProvider()) {
     auto bg_color_id = BraveThemeProperties::
         COLOR_SEARCH_CONVERSION_BUTTON_TYPE_BACKGROUND_NORMAL;
-    if (IsMouseHovered()) {
+    if (IsMouseHovered() || selected_) {
       bg_color_id = BraveThemeProperties::
           COLOR_SEARCH_CONVERSION_BUTTON_TYPE_BACKGROUND_HOVERED;
     }

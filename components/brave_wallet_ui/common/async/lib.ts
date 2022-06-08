@@ -79,7 +79,6 @@ export const onConnectHardwareWallet = (opts: HardwareWalletConnectOpts): Promis
         })
         .catch(reject)
     } else if (keyring instanceof SolanaLedgerKeyring && opts.network) {
-      // keyring.getAccounts(opts.startIndex, opts.stopIndex, opts.network)
       keyring.getAccounts(opts.startIndex, opts.stopIndex)
         .then((result: GetAccountsHardwareOperationResult) => {
           if (result.payload) {

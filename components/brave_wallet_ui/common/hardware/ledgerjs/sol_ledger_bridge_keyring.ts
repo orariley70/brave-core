@@ -97,7 +97,7 @@ export default class SolanaLedgerKeyring implements LedgerSolanaKeyring {
       const sol: Sol = this.app
       const rawTxBytes = Buffer.from(rawTxBase64, 'base64')
       const signed = await sol.signTransaction(path, rawTxBytes)
-      return { success: true, payload: signed.signature.toString('base64') }
+      return { success: true, payload: signed.signature }
     } catch (e) {
       return { success: false, error: e.message, code: e.statusCode || e.id || e.name }
     }
@@ -111,7 +111,6 @@ export default class SolanaLedgerKeyring implements LedgerSolanaKeyring {
     this.transport = undefined
   }
 
-  // TODO(nvonpentz) - support a 'scheme' argument, so user can select derivation path?
   private readonly getPathForIndex = (index: number): string => {
     return `44'/501'/0'/${index}`
   }

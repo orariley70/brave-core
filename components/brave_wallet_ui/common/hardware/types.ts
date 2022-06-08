@@ -31,7 +31,7 @@ export type HardwareOperationResult = {
 }
 
 export type SignHardwareTransactionOperationResult = HardwareOperationResult & {
-  payload?: EthereumSignedTx | SignedLotusMessage | string // TODO(nvonpentz) - string might not be right here
+  payload?: EthereumSignedTx | SignedLotusMessage | Buffer
 }
 
 export type SignHardwareMessageOperationResult = HardwareOperationResult & {

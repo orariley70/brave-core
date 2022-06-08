@@ -917,6 +917,9 @@ interface SolanaTxManagerProxy {
   MakeSystemProgramTransferTxData(string from, string to, uint64 lamports)
       => (SolanaTxData? tx_data, SolanaProviderError error, string error_message);
 
+  /* GetNonceForSolanaHardwareTransaction(string tx_meta_id) => (string? recent_blockhash); */
+  ProcessSolanaHardwareSignature(string tx_meta_id, array<uint8> signature_bytes) => (bool status, ProviderErrorUnion error_union, string error_message);
+
   // Get transaction data for transfering SPL tokens from one associated token
   // account to another.
   //

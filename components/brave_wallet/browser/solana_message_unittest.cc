@@ -309,4 +309,25 @@ TEST(SolanaMessageUnitTest, FromToValue) {
   }
 }
 
+TEST(SolanaMessageUnitTest, GetNumberOfSigners) {
+  SolanaInstruction instruction_one_signers(
+      kSolanaSystemProgramId,
+      {SolanaAccountMeta(kFromAccount, true, true),
+       SolanaAccountMeta(kToAccount, false, true)},
+      {2, 0, 0, 0, 128, 150, 152, 0, 0, 0, 0, 0});
+
+  SolanaMessage message(kRecentBlockhash, kLastValidBlockHeight, kFromAccount,
+                        {instruction_one_signers});
+  ASSERT_EQ(message.GetNumberOfSigners(), 1);
+
+  SolanaInstruction instruction_two_signers(
+      kSolanaSystemProgramId,
+      {SolanaAccountMeta(kFromAccount, true, true),
+       SolanaAccountMeta(kToAccount, true, true)},
+      {2, 0, 0, 0, 128, 150, 152, 0, 0, 0, 0, 0});
+  SolanaMessage message2(kRecentBlockhash, kLastValidBlockHeight, kFromAccount,
+                         {instruction_two_signers});
+  ASSERT_EQ(message2.GetNumberOfSigners(), 2);
+}
+
 }  // namespace brave_wallet

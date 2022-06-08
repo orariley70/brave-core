@@ -7,6 +7,7 @@
 
 #include <utility>
 
+#include "base/base64.h"
 #include "base/json/json_reader.h"
 #include "base/test/bind.h"
 #include "base/test/scoped_feature_list.h"
@@ -326,6 +327,40 @@ class SolanaTxManagerUnitTest : public testing::Test {
                           EXPECT_EQ(expected_err_message, err_message);
                           run_loop.Quit();
                         }));
+    run_loop.Run();
+  }
+
+  void TestGetTransactionMessageToSign(
+      const std::string& tx_meta_id,
+      absl::optional<std::string> expected_tx_message) {
+    base::RunLoop run_loop;
+    solana_tx_manager()->GetTransactionMessageToSign(
+        tx_meta_id, base::BindLambdaForTesting(
+                        [&](const absl::optional<std::string>& tx_message) {
+                          EXPECT_EQ(expected_tx_message, tx_message);
+                          run_loop.Quit();
+                        }));
+    run_loop.Run();
+  }
+
+  void TestProcessSolanaHardwareSignature(
+      const std::string& tx_meta_id,
+      const std::vector<uint8_t>& signature,
+      bool expected_result,
+      mojom::SolanaProviderError expected_error,
+      const std::string& expected_error_message) {
+    base::RunLoop run_loop;
+    solana_tx_manager()->ProcessSolanaHardwareSignature(
+        tx_meta_id, signature,
+        base::BindLambdaForTesting([&](bool result,
+                                       mojom::ProviderErrorUnionPtr error_union,
+                                       const std::string& error_message) {
+          EXPECT_EQ(expected_result, result);
+          ASSERT_TRUE(error_union->is_solana_provider_error());
+          EXPECT_EQ(error_union->get_solana_provider_error(), expected_error);
+          EXPECT_EQ(expected_error_message, error_message);
+          run_loop.Quit();
+        }));
     run_loop.Run();
   }
 
@@ -791,6 +826,91 @@ TEST_F(SolanaTxManagerUnitTest, DropTxWithInvalidBlockhash) {
           mojom::TransactionStatus::Submitted, absl::nullopt);
   ASSERT_EQ(pending_transactions.size(), 1u);
   EXPECT_EQ(pending_transactions[0]->id(), meta_id2);
+}
+
+TEST_F(SolanaTxManagerUnitTest, GetTransactionMessageToSign) {
+  // Unknown tx_meta_id yields null message
+  TestGetTransactionMessageToSign("Unknown", absl::nullopt);
+
+  const std::string from = "89DzXVKJ79xf9MkzTxatQESh5fcvsqBo9fCsbAXkCaZE";
+  const std::string to = "148FvZU6e67eSB12wv7fXCH5FsTDW8tsxXo3nFuZhfCF";
+  mojom::SolanaTxDataPtr system_transfer_data = nullptr;
+  TestMakeSystemProgramTransferTxData(from, to, 1, nullptr,
+                                      mojom::SolanaProviderError::kSuccess, "",
+                                      &system_transfer_data);
+  ASSERT_TRUE(system_transfer_data);
+  std::string system_transfer_meta_id;
+  AddUnapprovedTransaction(std::move(system_transfer_data), from,
+                           &system_transfer_meta_id);
+  ASSERT_FALSE(system_transfer_meta_id.empty());
+
+  // Invalid latest blockhash yields null message
+  SetInterceptor("", 0, "");
+  TestGetTransactionMessageToSign(system_transfer_meta_id, absl::nullopt);
+
+  // Valid latest blockhash yields valid transaction message to sign
+  SetInterceptor(latest_blockhash1_, last_valid_block_height1_, "");
+  TestGetTransactionMessageToSign(
+      system_transfer_meta_id,
+      "AQABA2odJRVUDnxVZv71pBNy0DZ/"
+      "ui6dv1N37VgGEA+"
+      "aezhZAMzywrLOSju1o9VJQ5KaB2lsblgqvdjtkDFlmZHz4KQAAAAAAAAAAAAAAAAAAAAAAAA"
+      "AAAAAAAAAAAAAAAAAAMxJDpKM0uOHO7ND/"
+      "JXaMxecpg9Nv0bCw26RKZ1V1Oa5AQICAAEMAgAAAAEAAAAAAAAA");
+
+  // Valid cached latest blockhash
+  SetInterceptor("", 0, "", "");
+  TestGetTransactionMessageToSign(
+      system_transfer_meta_id,
+      "AQABA2odJRVUDnxVZv71pBNy0DZ/"
+      "ui6dv1N37VgGEA+"
+      "aezhZAMzywrLOSju1o9VJQ5KaB2lsblgqvdjtkDFlmZHz4KQAAAAAAAAAAAAAAAAAAAAAAAA"
+      "AAAAAAAAAAAAAAAAAAMxJDpKM0uOHO7ND/"
+      "JXaMxecpg9Nv0bCw26RKZ1V1Oa5AQICAAEMAgAAAAEAAAAAAAAA");
+}
+
+TEST_F(SolanaTxManagerUnitTest, ProcessSolanaHardwareSignature) {
+  // Unknown tx_meta_id is invalid
+  TestProcessSolanaHardwareSignature(
+      "Unknown", std::vector<uint8_t>(), false,
+      mojom::SolanaProviderError::kInternalError,
+      l10n_util::GetStringUTF8(IDS_BRAVE_WALLET_TRANSACTION_NOT_FOUND));
+
+  const std::string from = "89DzXVKJ79xf9MkzTxatQESh5fcvsqBo9fCsbAXkCaZE";
+  const std::string to = "148FvZU6e67eSB12wv7fXCH5FsTDW8tsxXo3nFuZhfCF";
+  mojom::SolanaTxDataPtr system_transfer_data = nullptr;
+  TestMakeSystemProgramTransferTxData(from, to, 1, nullptr,
+                                      mojom::SolanaProviderError::kSuccess, "",
+                                      &system_transfer_data);
+  ASSERT_TRUE(system_transfer_data);
+  std::string system_transfer_meta_id;
+  AddUnapprovedTransaction(std::move(system_transfer_data), from,
+                           &system_transfer_meta_id);
+  ASSERT_FALSE(system_transfer_meta_id.empty());
+
+  std::string decoded_signature;
+  base::Base64Decode(
+      "L7D5wwkkgHQvbhpfY7rMovbtKmZpJ8ju7bxoaSCTbdfaJPNR7JXQNveTSrE6Sks94jFmUD7p"
+      "se34kgr1tGuuMfZ",
+      &decoded_signature);
+  std::vector<uint8_t> signature_bytes(decoded_signature.begin(),
+                                       decoded_signature.end());
+
+  // Blockhash not set is invalid
+  TestProcessSolanaHardwareSignature(
+      system_transfer_meta_id, signature_bytes, false,
+      mojom::SolanaProviderError::kInternalError,
+      l10n_util::GetStringUTF8(IDS_WALLET_INTERNAL_ERROR));
+
+  auto meta = solana_tx_manager()->GetTxForTesting(system_transfer_meta_id);
+  meta->tx()->message()->set_recent_blockhash(latest_blockhash1_);
+  meta->tx()->message()->set_last_valid_block_height(last_valid_block_height1_);
+  solana_tx_manager()->GetSolanaTxStateManager()->AddOrUpdateTx(*meta);
+
+  // Valid blockhash and valid number of signers is valid
+  TestProcessSolanaHardwareSignature(system_transfer_meta_id, signature_bytes,
+                                     true, mojom::SolanaProviderError::kSuccess,
+                                     "");
 }
 
 }  // namespace brave_wallet

@@ -85,6 +85,38 @@ SolanaTransaction::GetSignedTransactionBytes(
   return transaction_bytes;
 }
 
+absl::optional<std::vector<uint8_t>>
+SolanaTransaction::GetSignedTransactionBytes(
+    const std::vector<uint8_t>& signature_bytes) const {
+  // Combine the signature from hardware the message and send
+  std::vector<uint8_t> transaction_bytes;
+
+  std::uint8_t num_signers = message_.GetNumberOfSigners();
+  if (num_signers != 1) {
+    return absl::nullopt;
+  }
+
+  // 1 signer
+  CompactU16Encode(1, &transaction_bytes);
+
+  // Add signature
+  transaction_bytes.insert(transaction_bytes.end(), signature_bytes.begin(),
+                           signature_bytes.end());
+
+  // Add message
+  auto message_bytes = message_.Serialize(nullptr);
+  if (!message_bytes)
+    return absl::nullopt;
+
+  transaction_bytes.insert(transaction_bytes.end(), message_bytes->begin(),
+                           message_bytes->end());
+
+  if (transaction_bytes.size() > kSolanaMaxTxSize)
+    return absl::nullopt;
+
+  return transaction_bytes;
+}
+
 std::string SolanaTransaction::GetSignedTransaction(
     KeyringService* keyring_service) const {
   auto transaction_bytes = GetSignedTransactionBytes(keyring_service);

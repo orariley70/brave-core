@@ -45,6 +45,9 @@ class SolanaTransaction {
   absl::optional<std::vector<uint8_t>> GetSignedTransactionBytes(
       KeyringService* keyring_service) const;
 
+  absl::optional<std::vector<uint8_t>> GetSignedTransactionBytes(
+      const std::vector<uint8_t>& signature_bytes) const;
+
   mojom::SolanaTxDataPtr ToSolanaTxData() const;
   base::Value ToValue() const;
 

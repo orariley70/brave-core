@@ -220,7 +220,7 @@
     Only subscribe to lists from entities you trust. Your browser will periodically check for list updates from the URL you enter, revealing your IP address to their server.
   </message>
   <message name="IDS_BRAVE_ADBLOCK_CUSTOM_FILTERS_LABEL" desc="Label for custom filters section">
-    Custom Filters
+    Custom filters
   </message>
   <message name="IDS_BRAVE_ADBLOCK_CUSTOM_FILTERS_DESC" desc="Description for custom filters section">
     Get technical by adding your own specific filters, one by line, in <ph name="BEGIN_LINK">&lt;a target="_blank" href="$1"&gt;</ph>Adblock filter syntax<ph name="END_LINK">&lt;/a&gt;</ph>.

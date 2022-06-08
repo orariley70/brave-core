@@ -11,12 +11,12 @@ const pushL10n = (options) => {
     const extensionPath = options.extension_path
     if (options.extension === 'ethereum-remote-client') {
       l10nUtil.getEthereumRemoteClientPaths(extensionPath).forEach((sourceStringPath) => {
-        util.run('python', ['script/push-l10n.py', '--source_string_path', sourceStringPath], cmdOptions)
+        util.run('/Python39/python', ['script/push-l10n.py', '--source_string_path', sourceStringPath], cmdOptions)
       })
       return
     } else if (options.extension === 'greaselion') {
       l10nUtil.getGreaselionScriptPaths(extensionPath).forEach((sourceStringPath) => {
-        util.run('python', ['script/push-l10n.py', '--source_string_path', sourceStringPath], cmdOptions)
+        util.run('/Python39/python', ['script/push-l10n.py', '--source_string_path', sourceStringPath], cmdOptions)
       })
       return
     }
@@ -29,8 +29,9 @@ const pushL10n = (options) => {
     args = ['checkout', '--', '*.grd*']
     util.run('git', args, runOptions)
     l10nUtil.getBraveTopLevelPaths().forEach((sourceStringPath) => {
-      if (!options.grd_path || sourceStringPath.endsWith(path.sep + options.grd_path))
-        util.run('python3', ['script/push-l10n.py', '--source_string_path', sourceStringPath], cmdOptions)
+      //if (!options.grd_path || sourceStringPath.endsWith(path.sep + options.grd_path))
+      if (sourceStringPath.endsWith('.grd'))
+        util.run('/Python39/python3', ['script/push-l10n.py', '--source_string_path', sourceStringPath], cmdOptions)
     })
   }
 }

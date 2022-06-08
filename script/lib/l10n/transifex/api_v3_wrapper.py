@@ -147,7 +147,8 @@ class TransifexAPIV3Wrapper(TransifexAPIV2Wrapper):
     def __get_resource_translation(self, resource_slug, lang_code, string_key):
         translation_id = self.__get_resource_translation_id(
             resource_slug, lang_code, string_key)
-        return transifex_api.ResourceTranslation.get(id = translation_id)
+        return transifex_api.ResourceTranslation.get(
+            id = translation_id, include = ['resource_string'])
 
 
     # TransifexAPIWrapper overrides
@@ -213,19 +214,33 @@ class TransifexAPIV3Wrapper(TransifexAPIV2Wrapper):
 
 
     def transifex_upload_string_l10n(self, resource_name, string_hash,
-                                     lang_code, translated_value):
+                                     lang_code, translated_value, missing_only):
         """Uploads the localized string in the given language for the string
            with the given hash."""
-        translation = self.__get_resource_translation(resource_name, lang_code,
-                                                    string_hash)
-        translation.strings = {'other': translated_value}
-        translation.reviewed = True
-        # `proofread` attribute cannot be set on project's not supporting
-        # second review step - is the exception we'd get if try to set this.
-        # Currently, https://www.transifex.com/brave/brave/settings/workflow/
-        # doesn't have `Proofread` option checked. Settings this in APIv2
-        # doesn't appear to do anything when the option is turned off.
-        # If we turn that option on make sure to add 'proofread' to the save
-        # call below.
-        # translation.proofread = True
-        translation.save('strings', 'reviewed')
+        try:
+            translation = self.__get_resource_translation(
+                resource_name, lang_code, string_hash)
+            #if translation.resource_string.pluralized:
+            #    print(f'[Warning!] In {resource_name}, string {string_hash} is pluralized')
+            if (missing_only and translation.strings is not None and
+                   len(translation.strings['other'])):
+                # print(f'String {string_hash} ({lang_code}) already has a ' \
+                #       'translation and --with_missing_translations flag ' \
+                #       'was specified')
+                return
+            translation.strings = {'other': translated_value}
+            translation.reviewed = True
+            # `proofread` attribute cannot be set on project's not supporting
+            # second review step - is the exception we'd get if try to set this.
+            # Currently, https://www.transifex.com/brave/brave/settings/workflow
+            # doesn't have `Proofread` option checked. Settings this in APIv2
+            # doesn't appear to do anything when the option is turned off.
+            # If we turn that option on make sure to add 'proofread' to the save
+            # call below.
+            # translation.proofread = True
+            translation.save('strings', 'reviewed')
+            print(f'Uploaded translation for {lang_code}: {string_hash}...')
+        except:
+            print(f'WARNING: String with hash {string_hash} is not found in ' \
+                  f'resource {resource_name} in Transifex. Perhaps it has ' \
+                  'not been uploaded yet?')

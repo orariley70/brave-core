@@ -239,6 +239,7 @@ def get_grd_strings(grd_file_path, validate_tags=True):
         message_value = textify(message_tag)
         assert message_name, 'Message name is empty'
         assert (message_name.startswith('IDS_') or
+                message_name.startswith('IDR_') or
                 message_name.startswith('PRINT_PREVIEW_MEDIA_')), \
             f'Invalid message ID: {message_name}'
         # None of the PRINT_PREVIEW_MEDIA_ messages currently get uploaded for

@@ -9,6 +9,7 @@
 #include <utility>
 
 #include "base/base64.h"
+#include "base/base_switches.h"
 #include "base/bind.h"
 #include "base/containers/flat_map.h"
 #include "base/cxx17_backports.h"
@@ -839,7 +840,56 @@ void AdsServiceImpl::DetectUncertainFuture(const uint32_t number_of_start) {
 void AdsServiceImpl::OnDetectUncertainFuture(const uint32_t number_of_start,
                                              const bool is_uncertain_future) {
   ads::mojom::SysInfoPtr sys_info = ads::mojom::SysInfo::New();
+
+  // TODO(https://github.com/brave/brave-browser/issues/13793): Decouple code
+  // after moving brave_ads to components which will then have access to all
+  // |kFeatureNames| and command-line switches rather than using the hard coded
+  // strings below.
+  const auto* command_line = base::CommandLine::ForCurrentProcess();
+  if (command_line->HasSwitch("variations-server-url") ||
+      command_line->HasSwitch("variations-insecure-server-url") ||
+      command_line->HasSwitch("fake-variations-channel") ||
+      command_line->HasSwitch("variations-override-country")) {
+    sys_info->did_override_command_line_args_flag = true;
+  } else {
+    std::string switch_value;
+    if (command_line->HasSwitch(switches::kEnableFeatures)) {
+      switch_value +=
+          command_line->GetSwitchValueASCII(switches::kEnableFeatures);
+    }
+    if (command_line->HasSwitch("force-fieldtrial-params")) {
+      switch_value +=
+          command_line->GetSwitchValueASCII("force-fieldtrial-params");
+    }
+    if (command_line->HasSwitch(switches::kFieldTrialHandle)) {
+      switch_value +=
+          command_line->GetSwitchValueASCII(switches::kFieldTrialHandle);
+    }
+
+    const std::vector<std::string> feature_names = {"AdRewards",
+                                                    "AdServing",
+                                                    "AntiTargeting",
+                                                    "Conversions",
+                                                    "EligibleAds",
+                                                    "EpsilonGreedyBandit",
+                                                    "FrequencyCapping",
+                                                    "InlineContentAds",
+                                                    "NewTabPageAds",
+                                                    "PermissionRules"
+                                                    "PurchaseIntent",
+                                                    "TextClassification",
+                                                    "UserActivity"};
+
+    for (const auto& feature_name : feature_names) {
+      if (switch_value.find(feature_name) != std::string::npos) {
+        sys_info->did_override_command_line_args_flag = true;
+        break;
+      }
+    }
+  }
+
   sys_info->is_uncertain_future = is_uncertain_future;
+
   bat_ads_service_->SetSysInfo(std::move(sys_info), base::NullCallback());
 
   EnsureBaseDirectoryExists(number_of_start);

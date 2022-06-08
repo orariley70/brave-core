@@ -24,6 +24,14 @@
 #include "ipc/ipc_channel_proxy.h"
 #include "mojo/public/cpp/bindings/pending_receiver.h"
 
+namespace {
+// NOTE: please open a security review when appending to this list.
+const char* kSkusAllowedOrigins[] = {"https://account.brave.com",
+                                     "https://account.bravesoftware.com",
+                                     "https://account.brave.software"};
+
+}  // namespace
+
 BraveRendererUpdater::BraveRendererUpdater(Profile* profile)
     : profile_(profile), is_wallet_allowed_for_context_(false) {
   PrefService* pref_service = profile->GetPrefs();
@@ -92,6 +100,21 @@ void BraveRendererUpdater::UpdateAllRenderers() {
     UpdateRenderer(&renderer_configuration);
 }
 
+const std::vector<std::string> BraveRendererUpdater::GetSkusAllowedOrigins() {
+  std::vector<std::string> result;
+  for (auto* const origin : kSkusAllowedOrigins) {
+    result.push_back(origin);
+  }
+  if (!skus_allowed_origin_for_testing_.empty())
+    result.push_back(skus_allowed_origin_for_testing_);
+  return result;
+}
+
+void BraveRendererUpdater::SetSkusAllowedOriginForTesting(
+    const std::string& origin) {
+  skus_allowed_origin_for_testing_ = origin;
+}
+
 void BraveRendererUpdater::UpdateRenderer(
     mojo::AssociatedRemote<brave::mojom::BraveRendererConfiguration>*
         renderer_configuration) {
@@ -114,5 +137,5 @@ void BraveRendererUpdater::UpdateRenderer(
   (*renderer_configuration)
       ->SetConfiguration(brave::mojom::DynamicParams::New(
           brave_use_native_wallet, allow_overwrite_window_web3_provider,
-          de_amp_enabled));
+          de_amp_enabled, GetSkusAllowedOrigins()));
 }

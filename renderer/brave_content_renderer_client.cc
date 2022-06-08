@@ -5,6 +5,9 @@
 
 #include "brave/renderer/brave_content_renderer_client.h"
 
+#include <string>
+#include <vector>
+
 #include "base/feature_list.h"
 #include "brave/components/brave_ads/common/features.h"
 #include "brave/components/brave_ads/renderer/brave_ads_render_frame_observer.h"
@@ -23,6 +26,12 @@
 #include "third_party/blink/public/platform/web_runtime_features.h"
 #include "third_party/blink/public/web/modules/service_worker/web_service_worker_context_proxy.h"
 #include "url/gurl.h"
+
+namespace {
+const std::vector<std::string>& GetSkusAllowedOrigins() {
+  return BraveRenderThreadObserver::GetDynamicParams().skus_allowed_origins;
+}
+}  // namespace
 
 BraveContentRendererClient::BraveContentRendererClient()
     : ChromeContentRendererClient() {}
@@ -89,8 +98,9 @@ void BraveContentRendererClient::RenderFrameCreated(
   }
 
   if (base::FeatureList::IsEnabled(skus::features::kSkusFeature)) {
-    new skus::SkusRenderFrameObserver(render_frame,
-                                      content::ISOLATED_WORLD_ID_GLOBAL);
+    new skus::SkusRenderFrameObserver(
+        render_frame, content::ISOLATED_WORLD_ID_GLOBAL,
+        base::BindRepeating(&GetSkusAllowedOrigins));
   }
 }
 

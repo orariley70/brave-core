@@ -5,8 +5,7 @@
 
 #include "brave/components/skus/renderer/skus_render_frame_observer.h"
 
-#include <string>
-#include <vector>
+#include <utility>
 
 #include "base/feature_list.h"
 #include "base/no_destructor.h"
@@ -19,8 +18,11 @@ namespace skus {
 
 SkusRenderFrameObserver::SkusRenderFrameObserver(
     content::RenderFrame* render_frame,
-    int32_t world_id)
-    : RenderFrameObserver(render_frame), world_id_(world_id) {}
+    int32_t world_id,
+    GetSkusAllowedOriginsCallback get_allowed_origins_callback)
+    : RenderFrameObserver(render_frame),
+      world_id_(world_id),
+      get_allowed_origins_callback_(std::move(get_allowed_origins_callback)) {}
 
 SkusRenderFrameObserver::~SkusRenderFrameObserver() {}
 
@@ -30,8 +32,9 @@ void SkusRenderFrameObserver::DidCreateScriptContext(
   if (!render_frame()->IsMainFrame() || world_id_ != world_id)
     return;
 
-  if (!IsAllowed())
+  if (!IsAllowed(get_allowed_origins_callback_.Run())) {
     return;
+  }
 
   if (!native_javascript_handle_) {
     native_javascript_handle_ = std::make_unique<SkusJSHandler>(render_frame());
@@ -42,19 +45,14 @@ void SkusRenderFrameObserver::DidCreateScriptContext(
   native_javascript_handle_->AddJavaScriptObjectToFrame(context);
 }
 
-bool SkusRenderFrameObserver::IsAllowed() {
+bool SkusRenderFrameObserver::IsAllowed(
+    const std::vector<std::string>& allowed_domains) {
   DCHECK(base::FeatureList::IsEnabled(skus::features::kSkusFeature));
-  // NOTE: please open a security review when appending to this list.
-  static base::NoDestructor<std::vector<blink::WebSecurityOrigin>> safe_origins{
-      {{blink::WebSecurityOrigin::Create(GURL("https://account.brave.com"))},
-       {blink::WebSecurityOrigin::Create(
-           GURL("https://account.bravesoftware.com"))},
-       {blink::WebSecurityOrigin::Create(
-           GURL("https://account.brave.software"))}}};
-
   const blink::WebSecurityOrigin& visited_origin =
       render_frame()->GetWebFrame()->GetSecurityOrigin();
-  for (const blink::WebSecurityOrigin& safe_origin : *safe_origins) {
+
+  for (const auto& allowed_domain : allowed_domains) {
+    auto safe_origin = blink::WebSecurityOrigin::Create(GURL(allowed_domain));
     if (safe_origin.IsSameOriginWith(visited_origin)) {
       return true;
     }

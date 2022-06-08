@@ -6,6 +6,7 @@
 #ifndef BRAVE_BROWSER_PROFILES_BRAVE_RENDERER_UPDATER_H_
 #define BRAVE_BROWSER_PROFILES_BRAVE_RENDERER_UPDATER_H_
 
+#include <string>
 #include <vector>
 
 #include "base/memory/raw_ptr.h"
@@ -22,6 +23,10 @@ namespace content {
 class RenderProcessHost;
 }
 
+namespace skus {
+class JsSkusBrowserTest;
+}  // namespace skus
+
 class BraveRendererUpdater : public KeyedService {
  public:
   explicit BraveRendererUpdater(Profile* profile);
@@ -33,6 +38,7 @@ class BraveRendererUpdater : public KeyedService {
   void InitializeRenderer(content::RenderProcessHost* render_process_host);
 
  private:
+  friend class skus::JsSkusBrowserTest;
   std::vector<mojo::AssociatedRemote<brave::mojom::BraveRendererConfiguration>>
   GetRendererConfigurations();
 
@@ -41,6 +47,8 @@ class BraveRendererUpdater : public KeyedService {
 
   // Update all renderers due to a configuration change.
   void UpdateAllRenderers();
+  void SetSkusAllowedOriginForTesting(const std::string& origin);
+  const std::vector<std::string> GetSkusAllowedOrigins();
 
   // Update the given renderer due to a configuration change.
   void UpdateRenderer(
@@ -54,6 +62,7 @@ class BraveRendererUpdater : public KeyedService {
   IntegerPrefMember brave_wallet_web3_provider_;
   BooleanPrefMember de_amp_enabled_;
   bool is_wallet_allowed_for_context_;
+  std::string skus_allowed_origin_for_testing_;
 };
 
 #endif  // BRAVE_BROWSER_PROFILES_BRAVE_RENDERER_UPDATER_H_

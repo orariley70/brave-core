@@ -7,6 +7,8 @@
 #define BRAVE_COMPONENTS_SKUS_RENDERER_SKUS_RENDER_FRAME_OBSERVER_H_
 
 #include <memory>
+#include <string>
+#include <vector>
 
 #include "brave/components/skus/renderer/skus_js_handler.h"
 #include "content/public/renderer/render_frame.h"
@@ -25,8 +27,13 @@ namespace skus {
 // See `browser/brave_content_browser_client.cc` for more information.
 class SkusRenderFrameObserver : public content::RenderFrameObserver {
  public:
-  explicit SkusRenderFrameObserver(content::RenderFrame* render_frame,
-                                   int32_t world_id);
+  using GetSkusAllowedOriginsCallback =
+      base::RepeatingCallback<const std::vector<std::string>&()>;
+
+  explicit SkusRenderFrameObserver(
+      content::RenderFrame* render_frame,
+      int32_t world_id,
+      GetSkusAllowedOriginsCallback get_dynamic_params_callback);
   SkusRenderFrameObserver(const SkusRenderFrameObserver&) = delete;
   SkusRenderFrameObserver& operator=(const SkusRenderFrameObserver&) = delete;
   ~SkusRenderFrameObserver() override;
@@ -39,11 +46,12 @@ class SkusRenderFrameObserver : public content::RenderFrameObserver {
   // RenderFrameObserver implementation.
   void OnDestruct() override;
 
-  bool IsAllowed();
+  bool IsAllowed(const std::vector<std::string>& allowed_domains);
 
   // Handle to "handler" JavaScript object functionality.
   std::unique_ptr<SkusJSHandler> native_javascript_handle_;
   int32_t world_id_;
+  GetSkusAllowedOriginsCallback get_allowed_origins_callback_;
 };
 
 }  // namespace skus

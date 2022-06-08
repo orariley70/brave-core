@@ -3,6 +3,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
+import("//brave/components/brave_vpn/buildflags/buildflags.gni")
 import("//testing/test.gni")
 
 source_set("browser_tests") {
@@ -32,4 +33,13 @@ source_set("browser_tests") {
     "//content/test:test_support",
     "//net:test_support",
   ]
+
+  if (enable_brave_vpn) {
+    sources += [ "js_skus_browsertest.cc" ]
+
+    deps += [
+      "//brave/browser/profiles",
+      "//brave/components/skus/common",
+    ]
+  }
 }

@@ -307,6 +307,7 @@ class TestSolanaProvider final : public brave_wallet::mojom::SolanaProvider {
   }
   void SignAndSendTransaction(
       const std::string& encoded_serialized_msg,
+      absl::optional<base::Value> send_options,
       SignAndSendTransactionCallback callback) override {
     EXPECT_EQ(encoded_serialized_msg,
               brave_wallet::Base58Encode(kSerializedMessage));

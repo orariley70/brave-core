@@ -13,7 +13,7 @@ import { getLocale } from '../../../../common/locale'
 import { usePendingTransactions } from '../../../common/hooks/use-pending-transaction'
 
 // Components
-import { CreateSiteOrigin, Tooltip } from '../../shared'
+import { CreateSiteOrigin, Tooltip, withPlaceholderIcon } from '../../shared'
 
 // Components
 import { NavButton, PanelTab, TransactionDetailBox } from '../'
@@ -47,7 +47,8 @@ import {
   QueueStepRow,
   QueueStepButton,
   ErrorText,
-  WarningIcon
+  WarningIcon,
+  AssetIcon
 } from './style'
 import { Skeleton } from '../../shared/loading-skeleton/styles'
 
@@ -72,6 +73,8 @@ export interface Props {
   onReject: () => void
 }
 
+const AssetIconWithPlaceholder = withPlaceholderIcon(AssetIcon, { size: 'big', marginLeft: 0, marginRight: 0 })
+
 function ConfirmTransactionPanel ({
   onConfirm,
   onReject
@@ -87,7 +90,6 @@ function ConfirmTransactionPanel ({
 
   // custom hooks
   const {
-    AssetIconWithPlaceholder,
     baseFeePerGas,
     findAssetPrice,
     foundTokenInfoByContractAddress,

@@ -150,8 +150,10 @@ void SolanaTxManager::OnSendSolanaTransaction(
     meta->set_status(mojom::TransactionStatus::Submitted);
     meta->set_submitted_time(base::Time::Now());
     meta->set_tx_hash(tx_hash);
+    LOG(ERROR) << "Success";
   } else {
     meta->set_status(mojom::TransactionStatus::Error);
+    LOG(ERROR) << "error";
   }
 
   tx_state_manager_->AddOrUpdateTx(*meta);

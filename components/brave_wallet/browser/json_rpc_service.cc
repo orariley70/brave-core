@@ -2187,6 +2187,7 @@ void JsonRpcService::SendSolanaTransaction(
     const std::string& signed_tx,
     absl::optional<SolanaTransaction::SendOptions> send_options,
     SendSolanaTransactionCallback callback) {
+  LOG(ERROR) << __FUNCTION__;
   if (signed_tx.empty()) {
     std::move(callback).Run(
         "", mojom::SolanaProviderError::kInvalidParams,

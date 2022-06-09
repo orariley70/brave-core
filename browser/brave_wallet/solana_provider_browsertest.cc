@@ -347,10 +347,12 @@ class SolanaProviderTest : public InProcessBrowserTest {
   }
 
   void CallSolanaSignAndSendTransaction(
-      const std::string& unsigned_tx_array_string) {
+      const std::string& unsigned_tx_array_string,
+      const std::string& send_options_string = "{}") {
     const std::string script = base::StringPrintf(
-        R"(solanaSignAndSendTransaction(new Uint8Array([%s])))",
-        unsigned_tx_array_string.c_str());
+        R"(solanaSignAndSendTransaction(new Uint8Array([%s]), %s))",
+        unsigned_tx_array_string.c_str(),
+        send_options_string.c_str());
     ASSERT_TRUE(ExecJs(web_contents(), script));
   }
 
@@ -592,7 +594,9 @@ IN_PROC_BROWSER_TEST_F(SolanaProviderTest, SignAndSendTransaction) {
   EXPECT_EQ(GetSignAndSendTransactionResult(),
             l10n_util::GetStringUTF8(IDS_WALLET_USER_REJECTED_REQUEST));
 
-  CallSolanaSignAndSendTransaction(kUnsignedTxArrayStr);
+  const std::string send_options =
+      R"({"maxRetries":1,"preflightCommitment":"confirmed","skipPreflight":true})";
+  CallSolanaSignAndSendTransaction(kUnsignedTxArrayStr, send_options);
   observer()->WaitForNewUnapprovedTx();
   EXPECT_TRUE(
       brave_wallet::BraveWalletTabHelper::FromWebContents(web_contents())
@@ -623,6 +627,12 @@ IN_PROC_BROWSER_TEST_F(SolanaProviderTest, SignAndSendTransaction) {
   EXPECT_EQ(mojom::TransactionType::SolanaDappSignAndSendTransaction,
             infos[tx2_index]->tx_type);
   EXPECT_EQ(infos[tx2_index]->tx_hash, kEncodedSignature);
+  ASSERT_TRUE(infos[tx2_index]->tx_data_union->is_solana_tx_data());
+  EXPECT_EQ(infos[tx2_index]->tx_data_union->get_solana_tx_data()->send_options,
+            mojom::SolanaSendTransactionOptions::New(
+              mojom::OptionalMaxRetries::New(1),
+              "confirmed",
+              mojom::OptionalSkipPreflight::New(true)));
 
   WaitForResultReady();
   EXPECT_EQ(GetSignAndSendTransactionResult(), kEncodedSignature);

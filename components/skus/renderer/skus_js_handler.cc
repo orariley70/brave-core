@@ -81,8 +81,12 @@ void SkusJSHandler::AddJavaScriptObjectToFrame(v8::Local<v8::Context> context) {
     return;
   gin::Handle<SkusJSHandler> handler = gin::CreateHandle(isolate, this);
   CHECK(!handler.IsEmpty());
+  v8::PropertyDescriptor desc(handler.ToV8(), false);
+  desc.set_configurable(false);
+
   chrome_obj
-      ->Set(context, gin::StringToSymbol(isolate, "braveSkus"), handler.ToV8())
+      ->DefineProperty(isolate->GetCurrentContext(),
+                       gin::StringToV8(isolate, "braveSkus"), desc)
       .Check();
 }
 

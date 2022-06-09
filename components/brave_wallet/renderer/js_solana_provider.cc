@@ -293,8 +293,7 @@ v8::Local<v8::Promise> JSSolanaProvider::SignAndSendTransaction(
 
   absl::optional<base::Value> send_options = absl::nullopt;
   v8::Local<v8::Value> v8_send_options;
-  if (arguments->Length() >= 1 &&
-      !arguments->GetNext(&v8_send_options)) {
+  if (arguments->Length() >= 1 && !arguments->GetNext(&v8_send_options)) {
     arguments->ThrowTypeError(
         l10n_util::GetStringUTF8(IDS_WALLET_INVALID_PARAMETERS));
     return v8::Local<v8::Promise>();

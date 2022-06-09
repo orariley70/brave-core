@@ -1,0 +1,14 @@
+diff --git a/components/sync/protocol/sync.proto b/components/sync/protocol/sync.proto
+index 53efa0b77f69c..236335e6c7471 100644
+--- a/components/sync/protocol/sync.proto
++++ b/components/sync/protocol/sync.proto
+@@ -170,8 +170,7 @@ message GetUpdatesMessage {
+ // server to generate a new store birthday, which allows dealing reliably with
+ // in-flight requests (in particular commits) from other clients.
+ message ClearServerDataMessage {
+-  // No arguments needed as the store birthday and user identifier are part of
+-  // an enclosing message.
++  optional bool disable_sync_chain = 1000;
+ }
+ 
+ // Response to a ClearServerData request.

@@ -54,6 +54,8 @@ class BraveSyncServiceImpl : public SyncServiceImpl {
 
   void Initialize() override;
 
+  void PermanentlyDeleteAccount();
+
  private:
   friend class BraveSyncServiceImplTest;
   FRIEND_TEST_ALL_PREFIXES(BraveSyncServiceImplTest,
@@ -62,6 +64,8 @@ class BraveSyncServiceImpl : public SyncServiceImpl {
   SyncServiceCrypto* GetCryptoForTests();
 
   void OnBraveSyncPrefsChanged(const std::string& path);
+
+  void OnAccountDeleted();
 
   brave_sync::Prefs brave_sync_prefs_;
 

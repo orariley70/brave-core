@@ -66,27 +66,26 @@ void SkusJSHandler::AddJavaScriptObjectToFrame(v8::Local<v8::Context> context) {
            .ToLocal(&chrome_value) ||
       !chrome_value->IsObject()) {
     chrome_obj = v8::Object::New(isolate);
-    global->Set(context, gin::StringToSymbol(isolate, "chrome"), chrome_obj)
-        .Check();
   } else {
     chrome_obj = chrome_value->ToObject(context).ToLocalChecked();
   }
 
   // window.chrome.braveSkus
-  v8::Local<v8::Object> skus_obj;
-  v8::Local<v8::Value> skus_value;
-  if (chrome_obj->Get(context, gin::StringToV8(isolate, "braveSkus"))
-          .ToLocal(&skus_value) &&
-      skus_value->IsObject())
-    return;
   gin::Handle<SkusJSHandler> handler = gin::CreateHandle(isolate, this);
   CHECK(!handler.IsEmpty());
-  v8::PropertyDescriptor desc(handler.ToV8(), false);
-  desc.set_configurable(false);
+  v8::PropertyDescriptor skus_desc(handler.ToV8(), false);
+  skus_desc.set_configurable(false);
 
   chrome_obj
       ->DefineProperty(isolate->GetCurrentContext(),
-                       gin::StringToV8(isolate, "braveSkus"), desc)
+                       gin::StringToV8(isolate, "braveSkus"), skus_desc)
+      .Check();
+
+  v8::PropertyDescriptor chrome_desc(chrome_obj, false);
+  chrome_desc.set_configurable(false);
+  global
+      ->DefineProperty(isolate->GetCurrentContext(),
+                       gin::StringToV8(isolate, "chrome"), chrome_desc)
       .Check();
 }
 

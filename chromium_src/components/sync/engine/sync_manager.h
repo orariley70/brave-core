@@ -9,7 +9,7 @@
 #include "base/callback_forward.h"
 
 #define ShutdownOnSyncThread                              \
-  PermanentlyDeleteAccount(base::OnceClosure callback){}; \
+  PermanentlyDeleteAccount(base::OnceClosure callback) {} \
   virtual void ShutdownOnSyncThread
 
 #include "src/components/sync/engine/sync_manager.h"

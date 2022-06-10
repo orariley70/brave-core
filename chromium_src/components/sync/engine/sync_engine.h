@@ -8,8 +8,8 @@
 
 #include "base/callback_forward.h"
 
-#define DisableProtocolEventForwarding                      \
-  PermanentlyDeleteAccount(base::OnceClosure callback) = 0; \
+#define DisableProtocolEventForwarding                    \
+  PermanentlyDeleteAccount(base::OnceClosure callback) {} \
   virtual void DisableProtocolEventForwarding
 
 #include "src/components/sync/engine/sync_engine.h"

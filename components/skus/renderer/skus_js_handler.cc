@@ -141,9 +141,9 @@ v8::Local<v8::Promise> SkusJSHandler::RefreshOrder(v8::Isolate* isolate,
       v8::Global<v8::Promise::Resolver>(isolate, resolver.ToLocalChecked()));
   auto context_old(
       v8::Global<v8::Context>(isolate, isolate->GetCurrentContext()));
-
+  auto host = render_frame_->GetWebFrame()->GetSecurityOrigin().Host().Utf8();
   skus_service_->RefreshOrder(
-      order_id,
+      host, order_id,
       base::BindOnce(&SkusJSHandler::OnRefreshOrder, base::Unretained(this),
                      std::move(promise_resolver), isolate,
                      std::move(context_old)));
@@ -209,9 +209,9 @@ v8::Local<v8::Promise> SkusJSHandler::FetchOrderCredentials(
       v8::Global<v8::Promise::Resolver>(isolate, resolver.ToLocalChecked()));
   auto context_old(
       v8::Global<v8::Context>(isolate, isolate->GetCurrentContext()));
-
+  auto host = render_frame_->GetWebFrame()->GetSecurityOrigin().Host().Utf8();
   skus_service_->FetchOrderCredentials(
-      order_id,
+      host, order_id,
       base::BindOnce(&SkusJSHandler::OnFetchOrderCredentials,
                      base::Unretained(this), std::move(promise_resolver),
                      isolate, std::move(context_old)));

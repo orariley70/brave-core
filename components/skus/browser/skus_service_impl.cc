@@ -5,6 +5,7 @@
 
 #include "brave/components/skus/browser/skus_service_impl.h"
 
+#include <memory>
 #include <utility>
 
 #include "base/json/json_reader.h"
@@ -64,9 +65,7 @@ namespace skus {
 SkusServiceImpl::SkusServiceImpl(
     PrefService* prefs,
     scoped_refptr<network::SharedURLLoaderFactory> url_loader_factory)
-    : context_(
-          std::make_unique<skus::SkusContextImpl>(prefs, url_loader_factory)),
-      sdk_(initialize_sdk(std::move(context_), skus::GetEnvironment())) {}
+    : prefs_(prefs), url_loader_factory_(url_loader_factory) {}
 
 SkusServiceImpl::~SkusServiceImpl() {}
 
@@ -83,24 +82,27 @@ void SkusServiceImpl::Bind(mojo::PendingReceiver<mojom::SkusService> receiver) {
 }
 
 void SkusServiceImpl::RefreshOrder(
+    const std::string& domain,
     const std::string& order_id,
     mojom::SkusService::RefreshOrderCallback callback) {
   std::unique_ptr<skus::RefreshOrderCallbackState> cbs(
       new skus::RefreshOrderCallbackState);
   cbs->cb = std::move(callback);
-
-  sdk_->refresh_order(OnRefreshOrder, std::move(cbs), order_id);
+  DLOG(INFO) << __FUNCTION__;
+  GetOrCreateSDK(domain)->refresh_order(OnRefreshOrder, std::move(cbs),
+                                        order_id);
 }
 
 void SkusServiceImpl::FetchOrderCredentials(
+    const std::string& domain,
     const std::string& order_id,
     mojom::SkusService::FetchOrderCredentialsCallback callback) {
   std::unique_ptr<skus::FetchOrderCredentialsCallbackState> cbs(
       new skus::FetchOrderCredentialsCallbackState);
   cbs->cb = std::move(callback);
-
-  sdk_->fetch_order_credentials(OnFetchOrderCredentials, std::move(cbs),
-                                order_id);
+  DLOG(INFO) << __FUNCTION__;
+  GetOrCreateSDK(domain)->fetch_order_credentials(OnFetchOrderCredentials,
+                                                  std::move(cbs), order_id);
 }
 
 void SkusServiceImpl::PrepareCredentialsPresentation(
@@ -110,9 +112,22 @@ void SkusServiceImpl::PrepareCredentialsPresentation(
   std::unique_ptr<skus::PrepareCredentialsPresentationCallbackState> cbs(
       new skus::PrepareCredentialsPresentationCallbackState);
   cbs->cb = std::move(callback);
+  DLOG(INFO) << __FUNCTION__;
+  GetOrCreateSDK(domain)->prepare_credentials_presentation(
+      OnPrepareCredentialsPresentation, std::move(cbs), domain, path);
+}
 
-  sdk_->prepare_credentials_presentation(OnPrepareCredentialsPresentation,
-                                         std::move(cbs), domain, path);
+::rust::Box<skus::CppSDK>& SkusServiceImpl::GetOrCreateSDK(
+    const std::string& domain) {
+  if (sdk_.count(domain)) {
+    return sdk_.at(domain);
+  }
+  DLOG(INFO) << "CREATED NEW FOR:" << domain;
+  auto sdk = initialize_sdk(
+      std::make_unique<skus::SkusContextImpl>(prefs_, url_loader_factory_),
+      domain);
+  sdk_.insert_or_assign(domain, std::move(sdk));
+  return sdk_.at(domain);
 }
 
 void SkusServiceImpl::CredentialSummary(
@@ -124,13 +139,17 @@ void SkusServiceImpl::CredentialSummary(
       base::BindOnce(&SkusServiceImpl::OnCredentialSummary,
                      weak_factory_.GetWeakPtr(), domain, std::move(callback));
 
-  sdk_->credential_summary(::OnCredentialSummary, std::move(cbs), domain);
+  DLOG(INFO) << __FUNCTION__ << " domain:" << domain;
+  GetOrCreateSDK(domain)->credential_summary(::OnCredentialSummary,
+                                             std::move(cbs), domain);
 }
 
 void SkusServiceImpl::OnCredentialSummary(
     const std::string& domain,
     mojom::SkusService::CredentialSummaryCallback callback,
     const std::string& summary_string) {
+  DLOG(INFO) << __FUNCTION__ << " domain:" << domain << " -> "
+             << summary_string;
   if (callback) {
     std::move(callback).Run(summary_string);
   }

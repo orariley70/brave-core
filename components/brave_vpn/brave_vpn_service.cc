@@ -917,6 +917,7 @@ void BraveVpnService::LoadPurchasedState() {
 #endif  // !BUILDFLAG(IS_ANDROID) && !defined(OFFICIAL_BUILD)
 
   EnsureMojoConnected();
+  DLOG(INFO) << "OLOLO:" << skus::GetDomain("vpn");
   skus_service_->CredentialSummary(
       skus::GetDomain("vpn"),
       base::BindOnce(&BraveVpnService::OnCredentialSummary,

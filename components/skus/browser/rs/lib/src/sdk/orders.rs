@@ -125,7 +125,7 @@ impl TryFrom<OrderResponse> for Order {
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-struct SubmitReceiptResponse {
+pub struct SubmitReceiptResponse {
     external_id: String,
     vendor: String,
 }
@@ -228,7 +228,8 @@ where
                     self.base_url, order_id
                 ));
 
-                let req = builder.body(receipt.as_bytes()).unwrap();
+                let receipt_bytes : Vec<u8> = receipt.as_bytes().to_vec();
+                let req = builder.body(receipt_bytes).unwrap();
                 let resp = self.fetch(req).await?;
 
                 match resp.status() {
@@ -240,7 +241,10 @@ where
             HttpHandler::new(3, "Submit order receipt", &self.client),
         );
         let (resp, _) = request_with_retries.await?;
-        Ok(resp)
+
+        let sr_resp: SubmitReceiptResponse = serde_json::from_slice(resp.body())?;
+
+        Ok(sr_resp)
     }
 
     #[instrument]

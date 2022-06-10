@@ -137,15 +137,6 @@ void SkusServiceImpl::CredentialSummary(
   sdk_->credential_summary(::OnCredentialSummary, std::move(cbs), domain);
 }
 
-void SkusServiceImpl::SubmitReceipt(const std::string& order_id,
-                   const std::string& receipt,
-                   skus::mojom::SkusService::SubmitReceiptCallback callback) {
-  std::unique_ptr<skus::SubmitReceiptCallbackState> cbs(
-      new skus::SubmitReceiptCallbackState);
-  cbs->cb = std::move(callback);
-  sdk_->submit_receipt(OnSubmitReceipt, std::move(cbs), order_id, receipt);
-}
-
 void SkusServiceImpl::OnCredentialSummary(
     const std::string& domain,
     mojom::SkusService::CredentialSummaryCallback callback,
@@ -153,6 +144,15 @@ void SkusServiceImpl::OnCredentialSummary(
   if (callback) {
     std::move(callback).Run(summary_string);
   }
+}
+
+void SkusServiceImpl::SubmitReceipt(const std::string& order_id,
+                   const std::string& receipt,
+                   skus::mojom::SkusService::SubmitReceiptCallback callback) {
+  std::unique_ptr<skus::SubmitReceiptCallbackState> cbs(
+      new skus::SubmitReceiptCallbackState);
+  cbs->cb = std::move(callback);
+  sdk_->submit_receipt(OnSubmitReceipt, std::move(cbs), order_id, receipt);
 }
 
 }  // namespace skus

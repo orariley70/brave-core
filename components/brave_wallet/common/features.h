@@ -15,6 +15,7 @@ namespace features {
 
 extern const base::Feature kNativeBraveWalletFeature;
 extern const base::Feature kBraveWalletFilecoinFeature;
+extern const char kFilecoinTestnetEnabled[];
 extern const base::Feature kBraveWalletSolanaFeature;
 extern const base::Feature kBraveWalletSolanaProviderFeature;
 extern const base::Feature kBraveWalletEditKnownNetworksFeature;

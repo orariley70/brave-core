@@ -10,6 +10,7 @@
 #include "base/base64.h"
 #include "base/json/json_reader.h"
 #include "base/strings/string_number_conversions.h"
+#include "brave/components/brave_wallet/browser/brave_wallet_utils.h"
 #include "brave/components/brave_wallet/browser/fil_transaction.h"
 #include "brave/components/brave_wallet/common/brave_wallet.mojom.h"
 #include "brave/components/brave_wallet/common/fil_address.h"
@@ -137,7 +138,9 @@ std::string FilecoinKeyring::GetAddressInternal(HDKeyBase* hd_key_base) const {
   // TODO(spylogsster): Get network from settings.
   return FilAddress::FromUncompressedPublicKey(
              hd_key->GetUncompressedPublicKey(),
-             mojom::FilecoinAddressProtocol::SECP256K1, mojom::kFilecoinTestnet)
+             mojom::FilecoinAddressProtocol::SECP256K1,
+             IsFilecoinTestnetEnabled() ? mojom::kFilecoinTestnet
+                                        : mojom::kFilecoinMainnet)
       .EncodeAsString();
 }
 

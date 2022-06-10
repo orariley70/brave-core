@@ -16,6 +16,8 @@ const base::Feature kNativeBraveWalletFeature{"NativeBraveWallet",
 const base::Feature kBraveWalletFilecoinFeature{
     "BraveWalletFilecoin", base::FEATURE_DISABLED_BY_DEFAULT};
 
+const char kFilecoinTestnetEnabled[] = "filecoin_testnet_enabled";
+
 const base::Feature kBraveWalletSolanaFeature{
 #if BUILDFLAG(IS_ANDROID)
   "BraveWalletSolana", base::FEATURE_DISABLED_BY_DEFAULT

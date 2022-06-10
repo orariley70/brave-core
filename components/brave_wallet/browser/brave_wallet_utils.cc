@@ -17,6 +17,7 @@
 #include "base/environment.h"
 #include "base/feature_list.h"
 #include "base/logging.h"
+#include "base/metrics/field_trial_params.h"
 #include "base/notreached.h"
 #include "base/strings/strcat.h"
 #include "base/strings/string_number_conversions.h"
@@ -256,6 +257,18 @@ const brave_wallet::mojom::NetworkInfo kKnownFilNetworks[] = {
      "Filecoin",
      18,
      brave_wallet::mojom::CoinType::FIL,
+     nullptr}};
+
+const brave_wallet::mojom::NetworkInfo kKnownFilNetworksWithTestnet[] = {
+    {brave_wallet::mojom::kFilecoinMainnet,
+     "Filecoin Mainnet",
+     {"https://filscan.io/tipset/message-detail"},
+     {},
+     {"https://api.node.glif.io/rpc/v0"},
+     "FIL",
+     "Filecoin",
+     18,
+     brave_wallet::mojom::CoinType::FIL,
      nullptr},
     {brave_wallet::mojom::kFilecoinTestnet,
      "Filecoin Testnet",
@@ -277,6 +290,23 @@ const brave_wallet::mojom::NetworkInfo kKnownFilNetworks[] = {
      18,
      brave_wallet::mojom::CoinType::FIL,
      nullptr}};
+
+const std::vector<brave_wallet::mojom::NetworkInfoPtr>&
+GetActualFilNetworksInfo() {
+  static std::vector<brave_wallet::mojom::NetworkInfoPtr> networks_info;
+  if (networks_info.empty()) {
+    if (IsFilecoinTestnetEnabled()) {
+      for (const auto& a : kKnownFilNetworksWithTestnet) {
+        networks_info.push_back(a.Clone());
+      }
+    } else {
+      for (const auto& a : kKnownFilNetworks) {
+        networks_info.push_back(a.Clone());
+      }
+    }
+  }
+  return networks_info;
+}
 
 const base::flat_map<std::string, std::string> kInfuraSubdomains = {
     {brave_wallet::mojom::kMainnetChainId, "mainnet"},
@@ -434,8 +464,8 @@ mojom::NetworkInfoPtr GetChain(PrefService* prefs,
       }
     }
   } else if (coin == mojom::CoinType::FIL) {
-    for (const auto& network : kKnownFilNetworks) {
-      if (network.chain_id == chain_id) {
+    for (const auto& network : GetActualFilNetworksInfo()) {
+      if (network->chain_id == chain_id) {
         return network.Clone();
       }
     }
@@ -526,6 +556,14 @@ bool IsNativeWalletEnabled() {
 bool IsFilecoinEnabled() {
   return base::FeatureList::IsEnabled(
       brave_wallet::features::kBraveWalletFilecoinFeature);
+}
+
+bool IsFilecoinTestnetEnabled() {
+  return base::FeatureList::IsEnabled(
+             brave_wallet::features::kBraveWalletFilecoinFeature) &&
+         base::GetFieldTrialParamByFeatureAsBool(
+             brave_wallet::features::kBraveWalletFilecoinFeature,
+             brave_wallet::features::kFilecoinTestnetEnabled, false);
 }
 
 bool IsDappsSupportEnabled() {
@@ -891,9 +929,9 @@ GURL GetNetworkURL(PrefService* prefs,
       }
     }
   } else if (coin == mojom::CoinType::FIL) {
-    for (const auto& network : kKnownFilNetworks) {
-      if (network.chain_id == chain_id && network.rpc_urls.size()) {
-        return GURL(network.rpc_urls.front());
+    for (const auto& network : GetActualFilNetworksInfo()) {
+      if (network->chain_id == chain_id && network->rpc_urls.size()) {
+        return GURL(network->rpc_urls.front());
       }
     }
   }
@@ -916,7 +954,7 @@ std::vector<mojom::NetworkInfoPtr> GetAllChains(PrefService* prefs,
 
 std::vector<mojom::NetworkInfoPtr> GetAllKnownFilChains() {
   std::vector<mojom::NetworkInfoPtr> result;
-  for (const auto& network : kKnownFilNetworks)
+  for (const auto& network : GetActualFilNetworksInfo())
     result.push_back(network.Clone());
   return result;
 }
@@ -940,8 +978,8 @@ std::vector<std::string> GetAllKnownSolNetworkIds() {
 
 std::vector<std::string> GetAllKnownFilNetworkIds() {
   std::vector<std::string> network_ids;
-  for (const auto& network : kKnownFilNetworks) {
-    std::string network_id = GetKnownFilNetworkId(network.chain_id);
+  for (const auto& network : GetActualFilNetworksInfo()) {
+    std::string network_id = GetKnownFilNetworkId(network->chain_id);
     if (!network_id.empty())
       network_ids.push_back(network_id);
   }
@@ -1003,9 +1041,9 @@ std::string GetKnownFilNetworkId(const std::string& chain_id) {
   // Separate check for localhost in known networks as it is predefined but
   // does not have predefined subdomain.
   if (chain_id == mojom::kLocalhostChainId) {
-    for (const auto& network : kKnownFilNetworks) {
-      if (network.chain_id == chain_id) {
-        return GURL(network.rpc_urls.front()).spec();
+    for (const auto& network : GetActualFilNetworksInfo()) {
+      if (network->chain_id == chain_id) {
+        return GURL(network->rpc_urls.front()).spec();
       }
     }
   }

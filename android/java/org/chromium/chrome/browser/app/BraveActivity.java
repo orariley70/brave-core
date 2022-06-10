@@ -349,7 +349,7 @@ public abstract class BraveActivity<C extends ChromeActivityComponent> extends C
     }
 
 
-    private void showHideWalletBadge(boolean visibile) {
+    private void setWalletBadgeVisibility(boolean visibile) {
         BraveToolbarLayoutImpl layout = getBraveToolbarLayout();
         if (layout != null) {
             layout.updateWalletBadgeVisibility(visibile);
@@ -1336,7 +1336,7 @@ public abstract class BraveActivity<C extends ChromeActivityComponent> extends C
                 });
         walletModel.getPendingItemsModel().mWalletIconNotificationVisible.removeObservers(this);
         walletModel.getPendingItemsModel().mWalletIconNotificationVisible.observe(
-                this, visible -> { showHideWalletBadge(visible); });
+                this, visible -> { setWalletBadgeVisibility(visible); });
     }
 
     private void showBraveRateDialog() {

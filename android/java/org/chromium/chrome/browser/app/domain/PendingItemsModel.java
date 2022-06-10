@@ -53,32 +53,32 @@ public class PendingItemsModel {
 
         assert mBraveWalletService != null;
         mBraveWalletService.getPendingSignMessageRequests(requests -> {
-            if (requests != null && requests.length != 0) {
+            if (requests != null && requests.length > 0) {
                 setWalletBadgeVisible();
                 return;
             }
         });
         mBraveWalletService.getPendingAddSuggestTokenRequests(requests -> {
-            if (requests != null && requests.length != 0) {
+            if (requests != null && requests.length > 0) {
                 setWalletBadgeVisible();
                 return;
             }
         });
         mBraveWalletService.getPendingGetEncryptionPublicKeyRequests(requests -> {
-            if (requests != null && requests.length != 0) {
+            if (requests != null && requests.length > 0) {
                 setWalletBadgeVisible();
                 return;
             }
         });
         assert mJsonRpcService != null;
         mJsonRpcService.getPendingAddChainRequests(networks -> {
-            if (networks != null && networks.length != 0) {
+            if (networks != null && networks.length > 0) {
                 setWalletBadgeVisible();
                 return;
             }
         });
         mJsonRpcService.getPendingSwitchChainRequests(requests -> {
-            if (requests != null && requests.length != 0) {
+            if (requests != null && requests.length > 0) {
                 setWalletBadgeVisible();
                 return;
             }

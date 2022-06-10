@@ -219,14 +219,15 @@ export const HardwareWalletConnect = ({ onSuccess, selectedAccountType }: Props)
             >
               <LedgerIcon />
             </HardwareButton>
-
-            <HardwareButton
-              onClick={onSelectTrezor}
-              isSelected={selectedHardwareWallet === BraveWallet.TREZOR_HARDWARE_VENDOR}
-              disabled={isConnecting && selectedHardwareWallet !== BraveWallet.TREZOR_HARDWARE_VENDOR}
-            >
+            {(selectedAccountType.coin === BraveWallet.CoinType.ETH) &&
+              <HardwareButton
+                onClick={onSelectTrezor}
+                isSelected={selectedHardwareWallet === BraveWallet.TREZOR_HARDWARE_VENDOR}
+                disabled={isConnecting && selectedHardwareWallet !== BraveWallet.TREZOR_HARDWARE_VENDOR}
+              >
               <TrezorIcon />
-            </HardwareButton>
+              </HardwareButton>
+            }
           </HardwareButtonRow>
         </>
       }

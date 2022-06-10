@@ -22,9 +22,7 @@ void InitClearServerDataContext(SyncCycle* cycle,
       sync_pb::ClientToServerMessage::CLEAR_SERVER_DATA);
   sync_pb::ClearServerDataMessage* clear_server_data =
       message->mutable_clear_server_data();
-  // ^ nothing to configure ;)
-  LOG(INFO) << "[BraveSync] " << __func__
-            << " clear_server_data=" << clear_server_data;
+  clear_server_data->set_disable_sync_chain(true);
 }
 
 }  // namespace

@@ -13,6 +13,8 @@ source_set("favicon") {
     "favicon_loader.mm",
     "favicon_view.h",
     "favicon_view.mm",
+    "favicon_driver.h",
+    "favicon_driver.mm",
   ]
 
   deps = [

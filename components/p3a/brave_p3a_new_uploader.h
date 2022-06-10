@@ -9,6 +9,7 @@
 #include <memory>
 #include <string>
 
+#include "base/callback.h"
 #include "base/memory/ref_counted.h"
 #include "url/gurl.h"
 
@@ -16,6 +17,10 @@ namespace network {
 class SharedURLLoaderFactory;
 class SimpleURLLoader;
 }  // namespace network
+
+namespace net {
+class HttpResponseHeaders;
+}  // namespace net
 
 namespace brave {
 
@@ -25,10 +30,16 @@ namespace brave {
 // testing the new endpoint).
 class BraveP3ANewUploader {
  public:
+  using UploadCompleteCallback = base::RepeatingCallback<
+      void(bool is_ok, int response_code, bool is_star)>;
+
   BraveP3ANewUploader(
       scoped_refptr<network::SharedURLLoaderFactory> url_loader_factory,
-      const GURL& p3a_endpoint,
-      const GURL& p2a_endpoint);
+      UploadCompleteCallback upload_callback,
+      const GURL& p3a_json_endpoint,
+      const GURL& p2a_json_endpoint,
+      const GURL& p3a_star_endpoint,
+      const GURL& p2a_star_endpoint);
 
   BraveP3ANewUploader(const BraveP3ANewUploader&) = delete;
   BraveP3ANewUploader& operator=(const BraveP3ANewUploader&) = delete;
@@ -37,14 +48,22 @@ class BraveP3ANewUploader {
 
   // From metrics::MetricsLogUploader
   void UploadLog(const std::string& compressed_log_data,
-                 const std::string& upload_type);
+                 const std::string& log_type,
+                 bool is_star);
 
-  void OnUploadComplete(std::unique_ptr<std::string> response_body);
+  void OnUploadComplete(bool is_star,
+                        scoped_refptr<net::HttpResponseHeaders> headers);
 
  private:
   scoped_refptr<network::SharedURLLoaderFactory> url_loader_factory_;
-  const GURL p3a_endpoint_;
-  const GURL p2a_endpoint_;
+
+  const GURL p3a_json_endpoint_;
+  const GURL p2a_json_endpoint_;
+  const GURL p3a_star_endpoint_;
+  const GURL p2a_star_endpoint_;
+
+  UploadCompleteCallback upload_callback_;
+
   std::unique_ptr<network::SimpleURLLoader> url_loader_;
 };
 

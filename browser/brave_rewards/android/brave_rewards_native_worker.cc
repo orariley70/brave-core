@@ -265,7 +265,7 @@ BraveRewardsNativeWorker::GetWalletBalance(JNIEnv* env) {
   for (const auto & item : balance_.wallets) {
     json_wallets.Set(item.first, item.second);
   }
-  root.SetPath("wallets", std::move(json_wallets));
+  root.SetByDottedPath("wallets", std::move(json_wallets));
   base::JSONWriter::Write(std::move(root), &json_balance);
 
   return base::android::ConvertUTF8ToJavaString(env, json_balance);
